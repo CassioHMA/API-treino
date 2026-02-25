@@ -2,6 +2,7 @@
   "name": "apibootcamp",
   "version": "1.0.0",
   "description": "API de gerenciamento de treinos",
+  "type": "module",
   "homepage": "https://github.com/CassioHMA/API-treino#readme",
   "bugs": {
     "url": "https://github.com/CassioHMA/API-treino/issues"
@@ -12,15 +13,14 @@
   },
   "license": "ISC",
   "author": "Cássio Henrique Machado",
-  "type": "commonjs",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "tsx --watch src/index.ts"
   },
   "devDependencies": {
     "@types/node": "^24.10.13",
-    "eslint": "^9.39.2",
+    "eslint": "^10.0.2",
     "prettier": "^3.8.1",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }
 }
