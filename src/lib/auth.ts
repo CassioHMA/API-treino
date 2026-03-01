@@ -11,7 +11,8 @@ const pgAdapter = new PrismaPg({
 const prisma = new PrismaClient({ adapter: pgAdapter });
 
 export const auth = betterAuth({
-    trustedOrigins: ["http://localhost:3000"],
+    basePath: "/api/auth",
+    trustedOrigins: ["http://localhost:3000", "http://localhost:8081"],
     emailAndPassword: {
         enabled: true,
     },

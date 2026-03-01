@@ -90,12 +90,16 @@ app.route({
       });
       // Process authentication request
       const response = await auth.handler(req);
+      const body = await response.text();
+      if (response.status >= 400) {
+        app.log.warn({ status: response.status, url: request.url, body: body || "(empty)" }, "Auth request failed");
+      }
       // Forward response to client
       reply.status(response.status);
       response.headers.forEach((value, key) => reply.header(key, value));
-      reply.send(response.body ? await response.text() : null);
+      reply.send(body);
     } catch (error) {
-      app.log.error({ err: error }, "Authentication Error");
+      app.log.error({ err: error, message: error instanceof Error ? error.message : String(error) }, "Authentication Error");
       reply.status(500).send({ 
         error: "Internal authentication error",
         code: "AUTH_FAILURE"
