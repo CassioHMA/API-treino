@@ -18,7 +18,7 @@ model User {
   workoutPlans  WorkoutPlan[]
   name          String
   email         String
-  emailVerified Boolean   @default(false)
+  emailVerified Boolean       @default(false)
   image         String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -51,15 +51,16 @@ enum Weekday {
 }
 
 model WorkoutDay {
-  id            String            @id
-  name          String
-  workoutPlanId String
-  workoutPlan   WorkoutPlan       @relation(fields: [workoutPlanId], references: [id])
-  isRest        Boolean           @default(false)
-  weekday       Weekday
-  exercises     Workoutexercise[]
-  createdAt     DateTime          @default(now())
-  updatadAt     DateTime          @updatedAt
+  id                         String            @id @default(uuid())
+  name                       String
+  workoutPlanId              String
+  workoutPlan                WorkoutPlan       @relation(fields: [workoutPlanId], references: [id])
+  isRest                     Boolean           @default(false)
+  weekday                    Weekday
+  exercises                  Workoutexercise[]
+  estimatedDurationInSeconds Int
+  createdAt                  DateTime          @default(now())
+  updatadAt                  DateTime          @updatedAt
 }
 
 model Workoutexercise {
@@ -70,7 +71,7 @@ model Workoutexercise {
   workoutDay        WorkoutDay @relation(fields: [workoutDayId], references: [id])
   sets              Int
   reps              Int
-  restTimeInseconds Int
+  restTimeInSeconds Int
   reatedAt          DateTime   @default(now())
   updatadAt         DateTime   @updatedAt
 }
