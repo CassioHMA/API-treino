@@ -13,6 +13,7 @@ import {
 } from "fastify-type-provider-zod";
 import { z } from "zod";
 
+import { NotFoundError } from "./errors/index.js";
 import { Weekday } from "./generated/prisma/enums.js";
 import { auth } from "./lib/auth.js";
 import { CreateWorkoutPlan } from "./usecases/CreateWorkoutPlan.js";
@@ -68,7 +69,7 @@ app.withTypeProvider<ZodTypeProvider>().route({
   schema: {
     body: z.object({
       name: z.string().trim().min(1),
-      workoutDay: z.array(
+      workoutDays: z.array(
         z.object({
           name: z.string().trim().min(1),
           weekday: z.enum(Weekday),
@@ -88,31 +89,36 @@ app.withTypeProvider<ZodTypeProvider>().route({
     }),
     response: {
       201: z.object({
-        id: z.uuid(),
+        id: z.string().uuid(),
         name: z.string().trim().min(1),
-      workoutDay: z.array(
-        z.object({
-          name: z.string().trim().min(1),
-          weekday: z.enum(Weekday),
-          isRest: z.boolean().default(false),
-          estimatedDurationInSeconds: z.number().min(1),
-          exercises: z.array(
-            z.object({
-              order: z.number().min(0),
-              name: z.string().trim().min(1),
-              sets: z.number().min(1),
-              reps: z.number().min(1),
-              restTimeInSeconds: z.number().min(1),
-            }),
-          ),
-        }),
-      ),
-    }),
+        workoutDays: z.array(
+          z.object({
+            name: z.string().trim().min(1),
+            weekDay: z.nativeEnum(Weekday),
+            isRest: z.boolean(),
+            estimatedDurationInSeconds: z.number().min(1),
+            coverImageUrl: z.string().url().optional().nullable(),
+            exercises: z.array(
+              z.object({
+                order: z.number().min(0),
+                name: z.string().trim().min(1),
+                sets: z.number().min(1),
+                reps: z.number().min(1),
+                restTimeInSeconds: z.number().min(1),
+              }),
+            ),
+          }),
+        ),
+      }),
     400: z.object({
       message: z.string(),
       code: z.string(),
     }),
     401: z.object({
+      error: z.string(),
+      code: z.string(),
+    }),
+    404: z.object({
       error: z.string(),
       code: z.string(),
     }),
@@ -138,28 +144,18 @@ app.withTypeProvider<ZodTypeProvider>().route({
       const result = await createWorkoutPlan.execute({
         userId: session.user.id,
         name: request.body.name,
-        workoutDay: request.body.workoutDay,
+        workoutDays: request.body.workoutDays,
       });
   
-    return reply.status(201).send({
-      id: result.id,
-      name: result.name,
-      workoutDay: result.workoutday.map((day) => ({
-        name: day.name,
-        weekday: day.weekday,
-        isRest: day.isRest,
-        estimatedDurationInSeconds: day.estimatedDurationInSeconds,
-        exercises: day.exercises.map((exercise) => ({
-          order: exercise.order,
-          name: exercise.name,
-          sets: exercise.sets,
-          reps: exercise.reps,
-          restTimeInSeconds: exercise.restTimeInSeconds,
-        })),
-      })),
-    });
+    return reply.status(201).send(result)
   } catch (error) {
     app.log.error(error);
+    if (error instanceof NotFoundError){
+      return reply.status(404).send({
+        error: error.message,
+        code: "NOT_FOUND_ERROR",
+      })
+    }
     return reply.status(500).send({
       error: "Internal server error",
       code: "INTERNAL_SERVER_ERROR",
