@@ -11,11 +11,10 @@ import {
   validatorCompiler,
   ZodTypeProvider,
 } from "fastify-type-provider-zod";
-import { z } from "zod";
 
 import { NotFoundError } from "./errors/index.js";
-import { Weekday } from "./generated/prisma/enums.js";
 import { auth } from "./lib/auth.js";
+import { ErrorSchema, workoutPlanSchema } from "./schemas/index.js";
 import { CreateWorkoutPlan } from "./usecases/CreateWorkoutPlan.js";
 const app = Fastify({
   logger: true,
@@ -67,66 +66,14 @@ app.withTypeProvider<ZodTypeProvider>().route({
   method: "POST",
   url: "/workouts-plans",
   schema: {
-    body: z.object({
-      name: z.string().trim().min(1),
-      workoutDays: z.array(
-        z.object({
-          name: z.string().trim().min(1),
-          weekday: z.enum(Weekday),
-          isRest: z.boolean().default(false),
-          estimatedDurationInSeconds: z.number().min(1),
-          exercises: z.array(
-            z.object({
-              order: z.number().min(0),
-              name: z.string().trim().min(1),
-              sets: z.number().min(1),
-              reps: z.number().min(1),
-              restTimeInSeconds: z.number().min(1),
-            }),
-          ),
-        }),
-      ),
-    }),
+    body: workoutPlanSchema.omit({ id: true }),
     response: {
-      201: z.object({
-        id: z.string().uuid(),
-        name: z.string().trim().min(1),
-        workoutDays: z.array(
-          z.object({
-            name: z.string().trim().min(1),
-            weekDay: z.nativeEnum(Weekday),
-            isRest: z.boolean(),
-            estimatedDurationInSeconds: z.number().min(1),
-            coverImageUrl: z.string().url().optional().nullable(),
-            exercises: z.array(
-              z.object({
-                order: z.number().min(0),
-                name: z.string().trim().min(1),
-                sets: z.number().min(1),
-                reps: z.number().min(1),
-                restTimeInSeconds: z.number().min(1),
-              }),
-            ),
-          }),
-        ),
-      }),
-    400: z.object({
-      message: z.string(),
-      code: z.string(),
-    }),
-    401: z.object({
-      error: z.string(),
-      code: z.string(),
-    }),
-    404: z.object({
-      error: z.string(),
-      code: z.string(),
-    }),
-    500: z.object({
-      error: z.string(),
-      code: z.string(),
-    })
-   },
+    201: workoutPlanSchema,
+    400: ErrorSchema,
+    401: ErrorSchema,
+    404: ErrorSchema,
+    500: ErrorSchema,
+    },
   },
   handler: async (request, reply) => {
     try {
