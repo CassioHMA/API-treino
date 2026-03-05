@@ -1,11 +1,8 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/prisma"
 }
 
@@ -30,14 +27,14 @@ model User {
 }
 
 model WorkoutPlan {
-  id         String       @id @default(uuid())
-  name       String
-  userId     String
-  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  workoutday WorkoutDay[]
-  isActive   Boolean      @default(true)
-  createdAt  DateTime     @default(now()) @db.Timestamptz()
-  updatedAt  DateTime     @updatedAt @db.Timestamptz()
+  id          String       @id @default(uuid())
+  name        String
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workoutDays WorkoutDay[]
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now()) @db.Timestamptz()
+  updatedAt   DateTime     @updatedAt @db.Timestamptz()
 }
 
 enum Weekday {
@@ -57,15 +54,15 @@ model WorkoutDay {
   workoutPlan                WorkoutPlan       @relation(fields: [workoutPlanId], references: [id], onDelete: Cascade)
   isRest                     Boolean           @default(false)
   weekday                    Weekday
-  exercises                  Workoutexercise[]
+  exercises                  WorkoutExercise[]
   estimatedDurationInSeconds Int
   coverImageUrl              String?
   createdAt                  DateTime          @default(now()) @db.Timestamptz()
-  updatadAt                  DateTime          @updatedAt @db.Timestamptz()
+  updatedAt                  DateTime          @updatedAt @db.Timestamptz()
   sessions                   WorkoutSession[]
 }
 
-model Workoutexercise {
+model WorkoutExercise {
   id                String     @id @default(uuid())
   name              String
   order             Int
@@ -74,8 +71,8 @@ model Workoutexercise {
   sets              Int
   reps              Int
   restTimeInSeconds Int
-  reatedAt          DateTime   @default(now())
-  updatadAt         DateTime   @updatedAt @db.Timestamptz()
+  createdAt         DateTime   @default(now()) @db.Timestamptz()
+  updatedAt         DateTime   @updatedAt @db.Timestamptz()
 }
 
 model WorkoutSession {
